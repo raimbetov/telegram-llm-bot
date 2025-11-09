@@ -1,0 +1,29 @@
+# Core dependencies
+python-telegram-bot==20.8
+python-dotenv==1.0.0
+
+# LLM providers
+anthropic==0.39.0
+openai==1.58.1
+
+# Web scraping and tools
+requests==2.32.3
+beautifulsoup4==4.12.3
+lxml==5.3.0
+
+# YouTube tools
+yt-dlp==2024.11.4
+youtube-transcript-api==0.6.2
+
+# Search tools
+duckduckgo-search==6.3.5
+
+# Optional: Playwright for JavaScript-heavy sites
+# Uncomment if needed and run: playwright install
+# playwright==1.49.0
+
+# Optional: Brave Search API
+# No additional package needed, uses requests
+
+# Optional: Tavily Search API
+# tavily-python==0.5.0
