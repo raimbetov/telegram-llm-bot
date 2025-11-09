@@ -91,8 +91,9 @@ def initialize_llm():
     else:
         model = LLM_MODEL
 
-    # Disable tool calling for Groq - it has very buggy/incomplete support
-    supports_tools = False if "groq.com" in str(LLM_BASE_URL) else True
+    # Disable tool calling for Groq and by default due to rate limiting issues
+    # Tool calling disabled: reduces errors and costs, YouTube auto-detection still works
+    supports_tools = False
 
     llm = get_llm_provider(
         provider=LLM_PROVIDER,
@@ -486,6 +487,39 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Conversation history cleared!")
 
 
+async def chatid_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Handle /chatid command to show chat and user IDs.
+    Only responds to whitelisted users for security.
+    Bypasses group access control to allow discovery of new group IDs.
+    """
+    user_id = update.effective_user.id
+    chat_id = update.message.chat_id
+
+    # Security: Only respond to whitelisted users
+    if ALLOWED_USERS and user_id not in ALLOWED_USERS:
+        logger.warning(f"Unauthorized /chatid attempt by user {user_id}")
+        return
+
+    # Determine chat type
+    chat_type = update.message.chat.type
+    chat_type_display = {
+        "private": "Direct Message",
+        "group": "Group",
+        "supergroup": "Supergroup",
+        "channel": "Channel"
+    }.get(chat_type, chat_type.capitalize())
+
+    response = (
+        f"📋 Chat Information\n\n"
+        f"Chat ID: `{chat_id}`\n"
+        f"Your User ID: `{user_id}`\n"
+        f"Chat Type: {chat_type_display}"
+    )
+
+    await update.message.reply_text(response, parse_mode="Markdown")
+
+
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle errors."""
     logger.error(f"Update {update} caused error {context.error}", exc_info=context.error)
@@ -505,6 +539,7 @@ def main():
     # Add handlers
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("clear", clear_command))
+    application.add_handler(CommandHandler("chatid", chatid_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     application.add_error_handler(error_handler)
 
